@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto">
+
+<head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>Thoughts on error handling | axymria - sigsegv development</title>
+<meta name="keywords" content="">
+<meta name="description" content="
+Have you ever properly thought about error handling in your code?
+We encounter errors all the time: when network errors occur, when processing user input, and generally whenever side effects are involved.
+So, what approaches to error handling are available? // TODO: don&rsquo;t like last sentense
+Some languages have their own idioms for error handling, like Go&rsquo;s err != nil or Rust&rsquo;s Result type.
+But some provide an ability to do whatever rubbish you want. So here are some of my thoughts on handling errors when you have the freedom to choose your strategy.">
+<meta name="author" content="Vladislav Vlasov">
+<link rel="canonical" href="http://localhost:1313/posts/cxx-error-handling/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.d6fcd20a4fb86efa4dfac8ec95da60244cc8871042183da1ef28e3a762ad79c8.css" integrity="sha256-1vzSCk&#43;4bvpN&#43;sjsldpgJEzIhxBCGD2h7yjjp2Ktecg=" rel="preload stylesheet" as="style">
+<link rel="icon" href="http://localhost:1313/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="http://localhost:1313/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="http://localhost:1313/favicon-32x32.png">
+<link rel="apple-touch-icon" href="http://localhost:1313/apple-touch-icon.png">
+<link rel="mask-icon" href="http://localhost:1313/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="en" href="http://localhost:1313/posts/cxx-error-handling/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .list:not(.dark)::-webkit-scrollbar-track {
+                background: 0 0;
+            }
+
+            .list:not(.dark)::-webkit-scrollbar-thumb {
+                border-color: var(--theme);
+            }
+        }
+
+    </style>
+</noscript><meta property="og:url" content="http://localhost:1313/posts/cxx-error-handling/">
+  <meta property="og:site_name" content="axymria - sigsegv development">
+  <meta property="og:title" content="Thoughts on error handling">
+  <meta property="og:description" content=" Have you ever properly thought about error handling in your code? We encounter errors all the time: when network errors occur, when processing user input, and generally whenever side effects are involved. So, what approaches to error handling are available? // TODO: don’t like last sentense
+Some languages have their own idioms for error handling, like Go’s err != nil or Rust’s Result type. But some provide an ability to do whatever rubbish you want. So here are some of my thoughts on handling errors when you have the freedom to choose your strategy.">
+  <meta property="og:locale" content="en">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="posts">
+    <meta property="article:published_time" content="2024-12-15T11:03:02+04:00">
+    <meta property="article:modified_time" content="2024-12-15T11:03:02+04:00">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Thoughts on error handling">
+<meta name="twitter:description" content="
+Have you ever properly thought about error handling in your code?
+We encounter errors all the time: when network errors occur, when processing user input, and generally whenever side effects are involved.
+So, what approaches to error handling are available? // TODO: don&rsquo;t like last sentense
+Some languages have their own idioms for error handling, like Go&rsquo;s err != nil or Rust&rsquo;s Result type.
+But some provide an ability to do whatever rubbish you want. So here are some of my thoughts on handling errors when you have the freedom to choose your strategy.">
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position":  1 ,
+      "name": "Posts",
+      "item": "http://localhost:1313/posts/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  2 ,
+      "name": "Thoughts on error handling",
+      "item": "http://localhost:1313/posts/cxx-error-handling/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "Thoughts on error handling",
+  "name": "Thoughts on error handling",
+  "description": " Have you ever properly thought about error handling in your code? We encounter errors all the time: when network errors occur, when processing user input, and generally whenever side effects are involved. So, what approaches to error handling are available? // TODO: don\u0026rsquo;t like last sentense\nSome languages have their own idioms for error handling, like Go\u0026rsquo;s err != nil or Rust\u0026rsquo;s Result type. But some provide an ability to do whatever rubbish you want. So here are some of my thoughts on handling errors when you have the freedom to choose your strategy.\n",
+  "keywords": [
+    
+  ],
+  "articleBody": " Have you ever properly thought about error handling in your code? We encounter errors all the time: when network errors occur, when processing user input, and generally whenever side effects are involved. So, what approaches to error handling are available? // TODO: don’t like last sentense\nSome languages have their own idioms for error handling, like Go’s err != nil or Rust’s Result type. But some provide an ability to do whatever rubbish you want. So here are some of my thoughts on handling errors when you have the freedom to choose your strategy.\nFor examples, I’ll use C++, as it supports all the error-handling approaches I’ll discuss here. Let’s consider a function Foo that accepts some data, communicates with a remote server, and returns a response to the caller. The code might look like this:\nRet Foo(D dependencies, R request) { const auto response = dependencies.client.FetchData(request); return response; } At first glance, this seems simple enough, but do you notice any issues? This code assumes the server will always respond correctly with the expected data. But is that always the case? Of course not! Let’s explore what could go wrong:\nNetwork errors, such as timeouts, might occur when trying to reach the server. Protocol-specific issues might arise, requiring us to handle a variety of potential server responses. Now, let’s examine the various approaches to error handling.\nConditions Before diving into specific methods, let’s establish some principles of good error handling:\nDo not ignore errors. Provide sufficient context about the error. Ensure access to the expected value when no error occurs. With these conditions in mind, let’s proceed.\nOptional return value A common approach is to return an optional value when an error occurs. The caller checks for the presence of a value and handles the situation accordingly. To provide error context, we log a message with an appropriate severity level. Here’s an example:\nstd::optional\u003cRet\u003e Foo(D dependencies, R request) { ... LOG_ERROR() \u003c\u003c \"Could not get data from remote service myservice: \" \u003c\u003c error; return opt_response; } I see this approach to error handling every day millions of times in production code. Do you already see the problem?\nIt’s a good idea to think about error handling from the calling side point of view. Here is how the calling side may look:\nauto data = Foo(deps, request); if (!data.has_value()) { LOG_INFO() \u003c\u003c \"Could not get data but it's because we can gently degrade in our functionality\"; } So what do we get here:\nTwo same logs with different levels - when we see them should we consider it as error or as info? Two same logs doesn’t make error research easier. Calling side doesn’t know that function already logged all the info so it logs one more time. But what if this data was crusial for our functionality? Than we would need to take some actions on the calling side depending on error type: timeout or non 2xx http response code. We cannot do this here because of lack of error context. Throw on error Another common method is to throw an exception on error and return the expected value on success:\nstruct FooError : std::exception { int code; std::string message; Context context; } Ret Foo(D dependencies, R request) { ... if (error) { throw FooError { .code = error.code, .message = \"error: \" + error.description, .context = MakeContext(error), }; } return response; } This feels like a standard way to process errors in languages where exceptions are supported. But lets see how the calling side of code looks like:\nauto data = Foo(deps, req); Do you see anything that shows that Foo can throw an exception? I don’t. More than that, even if you know that Foo throws an exception, how do you understand what type of exception it throws? You should go look through the call stack till you find one? But if we take part in network communication using some protocol like http we can have multiple reasons for error so we can have multiple exception types and they could not be in linear hierarchy or could be thrown not only in one place.\nSo speaking of algorithm to understand how to handle errors for this kind of function api:\nFirst of all you should understand (feel with all of your experience) that the function throws an exception. Hopefully you find doc comments with all exception type it throws and hopefully the doc comments contain the correct structure but if it’s not some well maintained lib you are not likely to find any docs so go look through call stack and find all the exception types it uses and understand the hierarchy. After all the journy to the depth of the code you can finally handle exceptions. But you need to do it carefully with the correct order of handling to not loose any information. When you get all your job done and handling exceptions seems Ok, you’d better suddenly recall some cool facts about call stack behaviour when exception occurs:\nIf exception occurs in constructor, desctructor will not be invoked What happens when you get exception while processing exception in desctructor? Yes, the best thing possible - terminate. And more… And also you should remember that using exceptions always adds indirrection. For example, you open some resource like db connection. After that exception occurs. The db connection will be lost in dangling state if you do not provide some mechanism like C++ RAII to rollback and close connection on destructor.\nReturn struct If we need to return more than one type from function we usially use structs. Like in our situation: data and error. Why not to use our beloved method? Lets see.\nCode using struct would look like this:\nstruct FooResult { std::optional\u003cR\u003e data; std::optional\u003cE\u003e error; }; FooResult Foo(D dependencies, R request) { ... if (error) { return FooResult { .data = std::nullopt, .error = MakeErrorContext(...), } } return FooResult { .data = response, .error = std::nullopt, }; } Error can be any structured data with rich context to process it from outside of Foo.\nAnd calling side may look like this:\nauto [data, error] = Foo(deps, req); if (error.has_value()) { // handle error } else if (data.has_value()) { // handle data } else { // oh shit I don't know what to do with it... } See the problem? I do. Have you ever encountered std::optional? Same shit. Because you have two optional types you have really four possble data sets:\nvalue, value nil, value value, nil nil, nil We can have an aggreement, that if we have error value we do not look at data. It looks fine for most real cases. But it removes only one redundant case. We still have nil, nil which cannot be processed properly. More than that, we have access to one type that really should not be present anyhow. I mean why can we get access to error type if no error takes place? Or the opposite.\nMost likely you find it familiar if you ever programmed golang. I guess the closes C++ way to express golang error handling is using tuples:\nstd::tuple\u003cR, E\u003e Foo(D dependencies, R request); Sum types Sum types is a concept you’d better read about somewhere else, like wikipedia. But here we will talk about the standard way of expressing data in case we need to have one of multiple possible types. In C++ this standard way is to use std::variant. It allowes us to store only one value, we always know what value type it can store and provide and it uses just enough space to store the biggest value type. In other languages you may see more ways to implement this behaviour like Rust enums or Haskell sum types.\nstd::variant\u003cR, E\u003e Foo(D dependencies, R request) { ... if (error) { return MakeError(...); } return data; } So here we can see that we construct and return only data that we need to have. No error construction when no error occurs and so on. Lets see what happens on calling side of code:\nauto result = Foo(deps, req); std::visit(Overloaded{ [](R\u0026 data) {/*process data*/}, [](E\u0026 error) {/*process error*/}, }, result); Or we can use other construction to check what value is present in variant:\nauto result = Foo(deps, req); if (auto* data = std::get_if\u003cR\u003e(\u0026result)) { // process data } else if (auto* error = std::get_if\u003cE\u003e(\u0026result)) { // process error } else {/*fck...*/} Something similar we get using index() function that returns index of holding type or npos if variant is in invalid state.\nSo what do we get using this kind if error handling? First of all - absolutely ugly syntax, yes. But it’s C++ so we get used to it, lets move on to advantages:\nUsing std::visit give us possibility to precess all variant types safely. If we forget one, it failes to compile. We don’t have any redundant state of data. We store only data we need. We don’t have access to data we don’t have. We don’t add any indirrection to our control flow. But (yes, always there is but…)\nThe syntax is complex All the functions on callstack till Foo that do not process error will need to somehow check if error occured and bypass it futher. With std::variant it doesn’t look like a good decision. So here comes…\nResult interface Lets now wrap our variant into nice interface:\ntemplate \u003ctypename Ok, typename Err\u003e class Result { public: Result(Ok); Result(Err); bool IsOk() const; Ok Value() const; Err Error() const; private: std::variant\u003cOk, Err\u003e result_; }; Result\u003cRes, E\u003e Foo(D dependencies, R request) { if (error) { return Result(MakeError(...)); } return Result(MakeData(...)); } Here is the calling side:\nauto result = Foo(deps, req); if (!result.IsOk()) { auto error = result.Error(); // handle error } else { auto value = result.Value(); // handle data } So now we have all the advantages of variant but don’t have problems that are related to C++ verbosity and complex syntax. Cool, isn’t it? So now we see from function call side the type that restricts direct access to possibly unexistant value, force each function to explicitly process the error if it occurs and make our control flow linear and safe.\nOf course this Result interface example is a bit costrated and guys familiar with Rust would rather costrated me for this but I don’t pretend I try to write good enough code while writing this article so I don’t care.\nFor C++ gungsters: Result is in standard library now!\nWhat I didn’t mention Of course there are some more ways of error handling available with different type of comfort in different programming languages. Lets list them:\nReturn error, value is inout parameter std::optional\u003cE\u003e Foo(D dependencies, R request, Ret\u0026 inout); Ret value; auto error = Foo(deps, req, value); if (error.has_value()) {...} Or the other way around.\nError codes Oh shit… Not this please. I don’t want to get down to this, lets skip it.\nFunctional style void Foo(D dependencies, R request, std::function\u003cvoid(OkResponse)\u003e on_success, std::function\u003cvoid(ErrResponse)\u003e on_error) { if (error) { return on_error(error); } return on_success(response); } You think this is not really used much and you don’t care? Hah! I worked with code base where this was a guidelined way to process errors! What a great time it was writing 9 level recursive closures in C++…\nWhat to choose? There is no correct or incorrect answer here. But I’ll try to give some points on what I think:\nProvide enough context to the calling side to make correct decisions how to handle error Make interface explicit from error handling point of view Don’t handle error twice. Use what is already used in your project - it’s simple and most likely correct answer. Changing error handling approach can lead to many error handling approaches at once, and it would be much worse. Remarks about the code I didn’t try to write correct or good enough for production code. You cannot find r/l/g/x-value C++ references or any language specific constructs. This article is not about that. It’s not important what is under the hood of reaching remote service and how our client returns us value or error. We just don’t care. Here we look at what happens next when we already know the result of execution and try to provide api for it. ",
+  "wordCount" : "2043",
+  "inLanguage": "en",
+  "datePublished": "2024-12-15T11:03:02+04:00",
+  "dateModified": "2024-12-15T11:03:02+04:00",
+  "author":{
+    "@type": "Person",
+    "name": "Vladislav Vlasov"
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "http://localhost:1313/posts/cxx-error-handling/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "axymria - sigsegv development",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "http://localhost:1313/favicon.ico"
+    }
+  }
+}
+</script>
+</head>
+
+<body class="" id="top">
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.body.classList.add('dark');
+    } else if (localStorage.getItem("pref-theme") === "light") {
+        document.body.classList.remove('dark')
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.body.classList.add('dark');
+    }
+
+</script>
+
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="http://localhost:1313/" accesskey="h" title="axymria - sigsegv development (Alt + H)">axymria - sigsegv development</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="http://localhost:1313/archives" title="Archive">
+                    <span>Archive</span>
+                </a>
+            </li>
+            <li>
+                <a href="http://localhost:1313/search/" title="Search">
+                    <span>Search</span>
+                </a>
+            </li>
+            <li>
+                <a href="http://localhost:1313/tags/" title="Tags">
+                    <span>Tags</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<article class="post-single">
+  <header class="post-header">
+    <div class="breadcrumbs"><a href="http://localhost:1313/">Home</a>&nbsp;»&nbsp;<a href="http://localhost:1313/posts/">Posts</a></div>
+    <h1 class="post-title entry-hint-parent">
+      Thoughts on error handling
+      <span class="entry-hint" title="Draft">
+        <svg xmlns="http://www.w3.org/2000/svg" height="35" viewBox="0 -960 960 960" fill="currentColor">
+          <path
+            d="M160-410v-60h300v60H160Zm0-165v-60h470v60H160Zm0-165v-60h470v60H160Zm360 580v-123l221-220q9-9 20-13t22-4q12 0 23 4.5t20 13.5l37 37q9 9 13 20t4 22q0 11-4.5 22.5T862.09-380L643-160H520Zm300-263-37-37 37 37ZM580-220h38l121-122-18-19-19-18-122 121v38Zm141-141-19-18 37 37-18-19Z" />
+        </svg>
+      </span>
+    </h1>
+    <div class="post-meta"><span title='2024-12-15 11:03:02 +0400 +04'>December 15, 2024</span>&nbsp;·&nbsp;10 min&nbsp;·&nbsp;Vladislav Vlasov&nbsp;|&nbsp;<a href="https://github.com/adityatelange/hugo-PaperMod/tree/exampleSite/content/posts/cxx-error-handling.md" rel="noopener noreferrer" target="_blank">Suggest Changes</a>
+
+</div>
+  </header> <div class="toc">
+    <details >
+        <summary accesskey="c" title="(Alt + C)">
+            <span class="details">Table of Contents</span>
+        </summary>
+
+        <div class="inner"><ul><ul>
+                <li>
+                    <a href="#conditions" aria-label="Conditions">Conditions</a></li>
+                <li>
+                    <a href="#optional-return-value" aria-label="Optional return value">Optional return value</a></li>
+                <li>
+                    <a href="#throw-on-error" aria-label="Throw on error">Throw on error</a></li>
+                <li>
+                    <a href="#return-struct" aria-label="Return struct">Return struct</a></li>
+                <li>
+                    <a href="#sum-types" aria-label="Sum types">Sum types</a></li>
+                <li>
+                    <a href="#result-interface" aria-label="Result interface">Result interface</a></li>
+                <li>
+                    <a href="#what-i-didnt-mention" aria-label="What I didn&rsquo;t mention">What I didn&rsquo;t mention</a><ul>
+                        
+                <li>
+                    <a href="#return-error-value-is-inout-parameter" aria-label="Return error, value is inout parameter">Return error, value is inout parameter</a></li>
+                <li>
+                    <a href="#error-codes" aria-label="Error codes">Error codes</a></li>
+                <li>
+                    <a href="#functional-style" aria-label="Functional style">Functional style</a></li></ul>
+                </li>
+                <li>
+                    <a href="#what-to-choose" aria-label="What to choose?">What to choose?</a></li></ul>
+                    
+                <li>
+                    <a href="#remarks-about-the-code" aria-label="Remarks about the code">Remarks about the code</a>
+                </li>
+            </ul>
+        </div>
+    </details>
+</div>
+
+  <div class="post-content"><hr>
+<p>Have you ever properly thought about error handling in your code?
+We encounter errors all the time: when network errors occur, when processing user input, and generally whenever side effects are involved.
+So, what approaches to error handling are available? // TODO: don&rsquo;t like last sentense</p>
+<p>Some languages have their own idioms for error handling, like Go&rsquo;s <code>err != nil</code> or Rust&rsquo;s <code>Result</code> type.
+But some provide an ability to do whatever rubbish you want. So here are some of my thoughts on handling errors when you have the freedom to choose your strategy.</p>
+<p>For examples, I’ll use C++, as it supports all the error-handling approaches I’ll discuss here.
+Let’s consider a function Foo that accepts some data, communicates with a remote server, and returns a response to the caller. The code might look like this:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c++" data-lang="c++"><span class="line"><span class="cl"><span class="n">Ret</span> <span class="nf">Foo</span><span class="p">(</span><span class="n">D</span> <span class="n">dependencies</span><span class="p">,</span> <span class="n">R</span> <span class="n">request</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">	<span class="k">const</span> <span class="k">auto</span> <span class="n">response</span> <span class="o">=</span> <span class="n">dependencies</span><span class="p">.</span><span class="n">client</span><span class="p">.</span><span class="n">FetchData</span><span class="p">(</span><span class="n">request</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">	<span class="k">return</span> <span class="n">response</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></div><p>At first glance, this seems simple enough, but do you notice any issues? This code assumes the server will always respond correctly with the expected data.
+But is that always the case? Of course not! Let’s explore what could go wrong:</p>
+<ul>
+<li>Network errors, such as timeouts, might occur when trying to reach the server.</li>
+<li>Protocol-specific issues might arise, requiring us to handle a variety of potential server responses.</li>
+</ul>
+<p>Now, let’s examine the various approaches to error handling.</p>
+<hr>
+<h3 id="conditions">Conditions<a hidden class="anchor" aria-hidden="true" href="#conditions">#</a></h3>
+<p>Before diving into specific methods, let’s establish some principles of good error handling:</p>
+<ul>
+<li>Do not ignore errors.</li>
+<li>Provide sufficient context about the error.</li>
+<li>Ensure access to the expected value when no error occurs.</li>
+</ul>
+<p>With these conditions in mind, let’s proceed.</p>
+<hr>
+<h3 id="optional-return-value">Optional return value<a hidden class="anchor" aria-hidden="true" href="#optional-return-value">#</a></h3>
+<p>A common approach is to return an optional value when an error occurs. The caller checks for the presence of a value and handles the situation accordingly.
+To provide error context, we log a message with an appropriate severity level. Here’s an example:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c++" data-lang="c++"><span class="line"><span class="cl"><span class="n">std</span><span class="o">::</span><span class="n">optional</span><span class="o">&lt;</span><span class="n">Ret</span><span class="o">&gt;</span> <span class="n">Foo</span><span class="p">(</span><span class="n">D</span> <span class="n">dependencies</span><span class="p">,</span> <span class="n">R</span> <span class="n">request</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">	<span class="p">...</span>
+</span></span><span class="line"><span class="cl">	<span class="n">LOG_ERROR</span><span class="p">()</span> <span class="o">&lt;&lt;</span> <span class="s">&#34;Could not get data from remote service myservice: &#34;</span> <span class="o">&lt;&lt;</span> <span class="n">error</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">	<span class="k">return</span> <span class="n">opt_response</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></div><p>I see this approach to error handling every day millions of times in production code. Do you already see the problem?</p>
+<p>It&rsquo;s a good idea to think about error handling from the calling side point of view. Here is how the calling side may look:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c++" data-lang="c++"><span class="line"><span class="cl"><span class="k">auto</span> <span class="n">data</span> <span class="o">=</span> <span class="n">Foo</span><span class="p">(</span><span class="n">deps</span><span class="p">,</span> <span class="n">request</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">data</span><span class="p">.</span><span class="n">has_value</span><span class="p">())</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">	<span class="n">LOG_INFO</span><span class="p">()</span> <span class="o">&lt;&lt;</span> <span class="s">&#34;Could not get data but it&#39;s because we can gently degrade in our functionality&#34;</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></div><p>So what do we get here:</p>
+<ul>
+<li>Two same logs with different levels - when we see them should we consider it as error or as info? <a href="https://github.com/uber-go/guide/blob/master/style.md#handle-errors-once">Two same logs doesn&rsquo;t make error research easier</a>.</li>
+<li>Calling side doesn&rsquo;t know that function already logged all the info so it logs one more time. But what if this data was crusial for our functionality? Than we would need to take some actions on
+the calling side depending on error type: timeout or non 2xx http response code. We cannot do this here because of lack of error context.</li>
+</ul>
+<hr>
+<h3 id="throw-on-error">Throw on error<a hidden class="anchor" aria-hidden="true" href="#throw-on-error">#</a></h3>
+<p>Another common method is to throw an exception on error and return the expected value on success:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c++" data-lang="c++"><span class="line"><span class="cl"><span class="k">struct</span> <span class="nc">FooError</span> <span class="o">:</span> <span class="n">std</span><span class="o">::</span><span class="n">exception</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">	<span class="kt">int</span> <span class="n">code</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">	<span class="n">std</span><span class="o">::</span><span class="n">string</span> <span class="n">message</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">	<span class="n">Context</span> <span class="n">context</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="n">Ret</span> <span class="nf">Foo</span><span class="p">(</span><span class="n">D</span> <span class="n">dependencies</span><span class="p">,</span> <span class="n">R</span> <span class="n">request</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">	<span class="p">...</span>
+</span></span><span class="line"><span class="cl">	<span class="k">if</span> <span class="p">(</span><span class="n">error</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">		<span class="k">throw</span> <span class="n">FooError</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">			<span class="p">.</span><span class="n">code</span> <span class="o">=</span> <span class="n">error</span><span class="p">.</span><span class="n">code</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">			<span class="p">.</span><span class="n">message</span> <span class="o">=</span> <span class="s">&#34;error: &#34;</span> <span class="o">+</span> <span class="n">error</span><span class="p">.</span><span class="n">description</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">			<span class="p">.</span><span class="n">context</span> <span class="o">=</span> <span class="n">MakeContext</span><span class="p">(</span><span class="n">error</span><span class="p">),</span>
+</span></span><span class="line"><span class="cl">		<span class="p">};</span>
+</span></span><span class="line"><span class="cl">	<span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="k">return</span> <span class="n">response</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></div><p>This feels like a standard way to process errors in languages where exceptions are supported.
+But lets see how the calling side of code looks like:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-cpp" data-lang="cpp"><span class="line"><span class="cl"><span class="k">auto</span> <span class="n">data</span> <span class="o">=</span> <span class="n">Foo</span><span class="p">(</span><span class="n">deps</span><span class="p">,</span> <span class="n">req</span><span class="p">);</span>
+</span></span></code></pre></div><p>Do you see anything that shows that Foo can throw an exception? I don&rsquo;t. More than that, even if you know that Foo throws an exception, how do you understand
+what type of exception it throws? You should go look through the call stack till you find one? But if we take part in network communication using some protocol like http we can
+have multiple reasons for error so we can have multiple exception types and they could not be in linear hierarchy or could be thrown not only in one place.</p>
+<p>So speaking of algorithm to understand how to handle errors for this kind of function api:</p>
+<ol>
+<li>First of all you should understand (feel with all of your experience) that the function throws an exception.</li>
+<li>Hopefully you find doc comments with all exception type it throws and hopefully the doc comments contain the correct structure but if it&rsquo;s not some well maintained lib
+you are not likely to find any docs so go look through call stack and find all the exception types it uses and understand the hierarchy.</li>
+<li>After all the journy to the depth of the code you can finally handle exceptions. But you need to do it carefully with the correct order of handling to not loose any information.</li>
+</ol>
+<p>When you get all your job done and handling exceptions seems Ok, you&rsquo;d better suddenly recall some cool facts about call stack behaviour when exception occurs:</p>
+<ul>
+<li>If exception occurs in constructor, desctructor will not be invoked</li>
+<li>What happens when you get exception while processing exception in desctructor? Yes, the best thing possible - terminate.</li>
+<li>And more&hellip;</li>
+</ul>
+<p>And also you should remember that using exceptions always adds indirrection. For example, you open some resource like db connection. After that exception
+occurs. The db connection will be lost in dangling state if you do not provide some mechanism like C++ RAII to rollback and close connection on destructor.</p>
+<hr>
+<h3 id="return-struct">Return struct<a hidden class="anchor" aria-hidden="true" href="#return-struct">#</a></h3>
+<p>If we need to return more than one type from function we usially use structs. Like in our situation: data and error. Why not to use our beloved method? Lets see.</p>
+<p>Code using struct would look like this:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-cpp" data-lang="cpp"><span class="line"><span class="cl"><span class="k">struct</span> <span class="nc">FooResult</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">	<span class="n">std</span><span class="o">::</span><span class="n">optional</span><span class="o">&lt;</span><span class="n">R</span><span class="o">&gt;</span> <span class="n">data</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">	<span class="n">std</span><span class="o">::</span><span class="n">optional</span><span class="o">&lt;</span><span class="n">E</span><span class="o">&gt;</span> <span class="n">error</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="p">};</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="n">FooResult</span> <span class="nf">Foo</span><span class="p">(</span><span class="n">D</span> <span class="n">dependencies</span><span class="p">,</span> <span class="n">R</span> <span class="n">request</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl"><span class="p">...</span>
+</span></span><span class="line"><span class="cl">	<span class="k">if</span> <span class="p">(</span><span class="n">error</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">		<span class="k">return</span> <span class="n">FooResult</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">			<span class="p">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">std</span><span class="o">::</span><span class="n">nullopt</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">			<span class="p">.</span><span class="n">error</span> <span class="o">=</span> <span class="n">MakeErrorContext</span><span class="p">(...),</span>
+</span></span><span class="line"><span class="cl">		<span class="p">}</span>
+</span></span><span class="line"><span class="cl">	<span class="p">}</span>
+</span></span><span class="line"><span class="cl">	<span class="k">return</span> <span class="n">FooResult</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">		<span class="p">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">response</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">		<span class="p">.</span><span class="n">error</span> <span class="o">=</span> <span class="n">std</span><span class="o">::</span><span class="n">nullopt</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">	<span class="p">};</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></div><p>Error can be any structured data with rich context to process it from outside of Foo.</p>
+<p>And calling side may look like this:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-cpp" data-lang="cpp"><span class="line"><span class="cl"><span class="k">auto</span> <span class="p">[</span><span class="n">data</span><span class="p">,</span> <span class="n">error</span><span class="p">]</span> <span class="o">=</span> <span class="n">Foo</span><span class="p">(</span><span class="n">deps</span><span class="p">,</span> <span class="n">req</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="k">if</span> <span class="p">(</span><span class="n">error</span><span class="p">.</span><span class="n">has_value</span><span class="p">())</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">	<span class="c1">// handle error
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="p">}</span> <span class="k">else</span> <span class="nf">if</span> <span class="p">(</span><span class="n">data</span><span class="p">.</span><span class="n">has_value</span><span class="p">())</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">	<span class="c1">// handle data
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">	<span class="c1">// oh shit I don&#39;t know what to do with it...
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="p">}</span>
+</span></span></code></pre></div><p>See the problem? I do. Have you ever encountered std::optional<bool>? Same shit.
+Because you have two optional types you have really four possble data sets:</p>
+<ol>
+<li>value, value</li>
+<li>nil, value</li>
+<li>value, nil</li>
+<li>nil, nil</li>
+</ol>
+<p>We can have an aggreement, that if we have error value we do not look at data. It looks fine for most real cases. But it removes only one
+redundant case. We still have <code>nil, nil</code> which cannot be processed properly. More than that, we have access to one type that really should not be present anyhow. I mean why can we get access to
+error type if no error takes place? Or the opposite.</p>
+<p>Most likely you find it familiar if you ever programmed golang. I guess the closes C++ way to express golang error handling is using tuples:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-cpp" data-lang="cpp"><span class="line"><span class="cl"><span class="n">std</span><span class="o">::</span><span class="n">tuple</span><span class="o">&lt;</span><span class="n">R</span><span class="p">,</span> <span class="n">E</span><span class="o">&gt;</span> <span class="n">Foo</span><span class="p">(</span><span class="n">D</span> <span class="n">dependencies</span><span class="p">,</span> <span class="n">R</span> <span class="n">request</span><span class="p">);</span>
+</span></span></code></pre></div><hr>
+<h3 id="sum-types">Sum types<a hidden class="anchor" aria-hidden="true" href="#sum-types">#</a></h3>
+<p>Sum types is a concept you&rsquo;d better read about somewhere else, like <a href="https://en.wikipedia.org/wiki/Algebraic_data_type">wikipedia</a>.
+But here we will talk about the standard way of expressing data in case we need to have one of multiple possible types.
+In C++ this standard way is to use <code>std::variant</code>. It allowes us to store only one value, we always know what value type it can store and provide
+and it uses just enough space to store the biggest value type. In other languages you may see more ways to implement this behaviour like Rust enums or Haskell sum types.</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-cpp" data-lang="cpp"><span class="line"><span class="cl"><span class="n">std</span><span class="o">::</span><span class="n">variant</span><span class="o">&lt;</span><span class="n">R</span><span class="p">,</span> <span class="n">E</span><span class="o">&gt;</span> <span class="n">Foo</span><span class="p">(</span><span class="n">D</span> <span class="n">dependencies</span><span class="p">,</span> <span class="n">R</span> <span class="n">request</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">	<span class="p">...</span>
+</span></span><span class="line"><span class="cl">	<span class="k">if</span> <span class="p">(</span><span class="n">error</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">		<span class="k">return</span> <span class="nf">MakeError</span><span class="p">(...);</span>
+</span></span><span class="line"><span class="cl">	<span class="p">}</span>
+</span></span><span class="line"><span class="cl">	<span class="k">return</span> <span class="n">data</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></div><p>So here we can see that we construct and return only data that we need to have. No error construction when no error occurs and so on.
+Lets see what happens on calling side of code:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-cpp" data-lang="cpp"><span class="line"><span class="cl"><span class="k">auto</span> <span class="n">result</span> <span class="o">=</span> <span class="n">Foo</span><span class="p">(</span><span class="n">deps</span><span class="p">,</span> <span class="n">req</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="n">std</span><span class="o">::</span><span class="n">visit</span><span class="p">(</span><span class="n">Overloaded</span><span class="p">{</span>
+</span></span><span class="line"><span class="cl">	<span class="p">[](</span><span class="n">R</span><span class="o">&amp;</span> <span class="n">data</span><span class="p">)</span> <span class="p">{</span><span class="cm">/*process data*/</span><span class="p">},</span>
+</span></span><span class="line"><span class="cl">	<span class="p">[](</span><span class="n">E</span><span class="o">&amp;</span> <span class="n">error</span><span class="p">)</span> <span class="p">{</span><span class="cm">/*process error*/</span><span class="p">},</span>
+</span></span><span class="line"><span class="cl"><span class="p">},</span> <span class="n">result</span><span class="p">);</span>
+</span></span></code></pre></div><p>Or we can use other construction to check what value is present in variant:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-cpp" data-lang="cpp"><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="k">auto</span> <span class="n">result</span> <span class="o">=</span> <span class="n">Foo</span><span class="p">(</span><span class="n">deps</span><span class="p">,</span> <span class="n">req</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="k">if</span> <span class="p">(</span><span class="k">auto</span><span class="o">*</span> <span class="n">data</span> <span class="o">=</span> <span class="n">std</span><span class="o">::</span><span class="n">get_if</span><span class="o">&lt;</span><span class="n">R</span><span class="o">&gt;</span><span class="p">(</span><span class="o">&amp;</span><span class="n">result</span><span class="p">))</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">	<span class="c1">// process data
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="p">}</span> <span class="k">else</span> <span class="nf">if</span> <span class="p">(</span><span class="k">auto</span><span class="o">*</span> <span class="n">error</span> <span class="o">=</span> <span class="n">std</span><span class="o">::</span><span class="n">get_if</span><span class="o">&lt;</span><span class="n">E</span><span class="o">&gt;</span><span class="p">(</span><span class="o">&amp;</span><span class="n">result</span><span class="p">))</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">	<span class="c1">// process error
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="p">}</span> <span class="k">else</span> <span class="p">{</span><span class="cm">/*fck...*/</span><span class="p">}</span>
+</span></span></code></pre></div><p>Something similar we get using index() function that returns index of holding type or npos if variant is in invalid state.</p>
+<p>So what do we get using this kind if error handling? First of all - absolutely ugly syntax, yes. But it&rsquo;s C++ so we get used to it, lets move on to advantages:</p>
+<ul>
+<li>Using <code>std::visit</code> give us possibility to precess all variant types safely. If we forget one, it failes to compile. We don&rsquo;t have any redundant state of data.</li>
+<li>We store only data we need.</li>
+<li>We don&rsquo;t have access to data we don&rsquo;t have.</li>
+<li>We don&rsquo;t add any indirrection to our control flow.</li>
+</ul>
+<p>But (yes, always there is but&hellip;)</p>
+<ul>
+<li>The syntax is complex</li>
+<li>All the functions on callstack till Foo that do not process error will need to somehow check if error occured and bypass it futher. With <code>std::variant</code> it doesn&rsquo;t look like a
+good decision.</li>
+</ul>
+<p>So here comes&hellip;</p>
+<hr>
+<h3 id="result-interface">Result interface<a hidden class="anchor" aria-hidden="true" href="#result-interface">#</a></h3>
+<p>Lets now wrap our variant into nice interface:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-cpp" data-lang="cpp"><span class="line"><span class="cl"><span class="k">template</span> <span class="o">&lt;</span><span class="k">typename</span> <span class="n">Ok</span><span class="p">,</span> <span class="k">typename</span> <span class="n">Err</span><span class="o">&gt;</span>
+</span></span><span class="line"><span class="cl"><span class="k">class</span> <span class="nc">Result</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl"><span class="k">public</span><span class="o">:</span>
+</span></span><span class="line"><span class="cl">	<span class="n">Result</span><span class="p">(</span><span class="n">Ok</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">	<span class="n">Result</span><span class="p">(</span><span class="n">Err</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="kt">bool</span> <span class="nf">IsOk</span><span class="p">()</span> <span class="k">const</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="n">Ok</span> <span class="nf">Value</span><span class="p">()</span> <span class="k">const</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="n">Err</span> <span class="nf">Error</span><span class="p">()</span> <span class="k">const</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="k">private</span><span class="o">:</span>
+</span></span><span class="line"><span class="cl">	<span class="n">std</span><span class="o">::</span><span class="n">variant</span><span class="o">&lt;</span><span class="n">Ok</span><span class="p">,</span> <span class="n">Err</span><span class="o">&gt;</span> <span class="n">result_</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="p">};</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="n">Result</span><span class="o">&lt;</span><span class="n">Res</span><span class="p">,</span> <span class="n">E</span><span class="o">&gt;</span> <span class="n">Foo</span><span class="p">(</span><span class="n">D</span> <span class="n">dependencies</span><span class="p">,</span> <span class="n">R</span> <span class="n">request</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">	<span class="k">if</span> <span class="p">(</span><span class="n">error</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">		<span class="k">return</span> <span class="nf">Result</span><span class="p">(</span><span class="n">MakeError</span><span class="p">(...));</span>
+</span></span><span class="line"><span class="cl">	<span class="p">}</span>
+</span></span><span class="line"><span class="cl">	<span class="k">return</span> <span class="nf">Result</span><span class="p">(</span><span class="n">MakeData</span><span class="p">(...));</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></div><p>Here is the calling side:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-cpp" data-lang="cpp"><span class="line"><span class="cl"><span class="k">auto</span> <span class="n">result</span> <span class="o">=</span> <span class="n">Foo</span><span class="p">(</span><span class="n">deps</span><span class="p">,</span> <span class="n">req</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">result</span><span class="p">.</span><span class="n">IsOk</span><span class="p">())</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">	<span class="k">auto</span> <span class="n">error</span> <span class="o">=</span> <span class="n">result</span><span class="p">.</span><span class="n">Error</span><span class="p">();</span>
+</span></span><span class="line"><span class="cl">	<span class="c1">// handle error
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">	<span class="k">auto</span> <span class="n">value</span> <span class="o">=</span> <span class="n">result</span><span class="p">.</span><span class="n">Value</span><span class="p">();</span>
+</span></span><span class="line"><span class="cl">	<span class="c1">// handle data
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="p">}</span>
+</span></span></code></pre></div><p>So now we have all the advantages of variant but don&rsquo;t have problems that are related to C++ verbosity and complex syntax. Cool, isn&rsquo;t it?
+So now we see from function call side the type that restricts direct access to possibly unexistant value, force each function to explicitly process the error if it occurs
+and make our control flow linear and safe.</p>
+<p>Of course this Result interface example is a bit costrated and guys familiar with Rust would rather costrated me for this but I don&rsquo;t pretend I try to write good enough code
+while writing this article so I don&rsquo;t care.</p>
+<p>For C++ gungsters: Result is <a href="https://en.cppreference.com/w/cpp/utility/expected">in standard library now</a>!</p>
+<hr>
+<h3 id="what-i-didnt-mention">What I didn&rsquo;t mention<a hidden class="anchor" aria-hidden="true" href="#what-i-didnt-mention">#</a></h3>
+<p>Of course there are some more ways of error handling available with different type of comfort in different programming languages. Lets list them:</p>
+<h4 id="return-error-value-is-inout-parameter">Return error, value is inout parameter<a hidden class="anchor" aria-hidden="true" href="#return-error-value-is-inout-parameter">#</a></h4>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-cpp" data-lang="cpp"><span class="line"><span class="cl"><span class="n">std</span><span class="o">::</span><span class="n">optional</span><span class="o">&lt;</span><span class="n">E</span><span class="o">&gt;</span> <span class="n">Foo</span><span class="p">(</span><span class="n">D</span> <span class="n">dependencies</span><span class="p">,</span> <span class="n">R</span> <span class="n">request</span><span class="p">,</span> <span class="n">Ret</span><span class="o">&amp;</span> <span class="n">inout</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="n">Ret</span> <span class="n">value</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="k">auto</span> <span class="n">error</span> <span class="o">=</span> <span class="n">Foo</span><span class="p">(</span><span class="n">deps</span><span class="p">,</span> <span class="n">req</span><span class="p">,</span> <span class="n">value</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="k">if</span> <span class="p">(</span><span class="n">error</span><span class="p">.</span><span class="n">has_value</span><span class="p">())</span> <span class="p">{...}</span>
+</span></span></code></pre></div><p>Or the other way around.</p>
+<h4 id="error-codes">Error codes<a hidden class="anchor" aria-hidden="true" href="#error-codes">#</a></h4>
+<p>Oh shit&hellip; Not this please. I don&rsquo;t want to get down to this, lets skip it.</p>
+<h4 id="functional-style">Functional style<a hidden class="anchor" aria-hidden="true" href="#functional-style">#</a></h4>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-cpp" data-lang="cpp"><span class="line"><span class="cl"><span class="kt">void</span> <span class="nf">Foo</span><span class="p">(</span><span class="n">D</span> <span class="n">dependencies</span><span class="p">,</span> <span class="n">R</span> <span class="n">request</span><span class="p">,</span> <span class="n">std</span><span class="o">::</span><span class="n">function</span><span class="o">&lt;</span><span class="kt">void</span><span class="p">(</span><span class="n">OkResponse</span><span class="p">)</span><span class="o">&gt;</span> <span class="n">on_success</span><span class="p">,</span> <span class="n">std</span><span class="o">::</span><span class="n">function</span><span class="o">&lt;</span><span class="kt">void</span><span class="p">(</span><span class="n">ErrResponse</span><span class="p">)</span><span class="o">&gt;</span> <span class="n">on_error</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">	<span class="k">if</span> <span class="p">(</span><span class="n">error</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">		<span class="k">return</span> <span class="n">on_error</span><span class="p">(</span><span class="n">error</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">	<span class="p">}</span>
+</span></span><span class="line"><span class="cl">	<span class="k">return</span> <span class="n">on_success</span><span class="p">(</span><span class="n">response</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></div><p>You think this is not really used much and you don&rsquo;t care? Hah! I worked with code base where this was a guidelined way to process errors!
+What a great time it was writing 9 level recursive closures in C++&hellip;</p>
+<h3 id="what-to-choose">What to choose?<a hidden class="anchor" aria-hidden="true" href="#what-to-choose">#</a></h3>
+<p>There is no correct or incorrect answer here. But I&rsquo;ll try to give some points on what I think:</p>
+<ul>
+<li>Provide enough context to the calling side to make correct decisions how to handle error</li>
+<li>Make interface explicit from error handling point of view</li>
+<li>Don&rsquo;t handle error twice.</li>
+<li>Use what is already used in your project - it&rsquo;s simple and most likely correct answer. Changing error handling approach can lead to many error handling approaches at once,
+and it would be much worse.</li>
+</ul>
+<h2 id="remarks-about-the-code">Remarks about the code<a hidden class="anchor" aria-hidden="true" href="#remarks-about-the-code">#</a></h2>
+<ul>
+<li>I didn&rsquo;t try to write correct or good enough for production code. You cannot find r/l/g/x-value C++ references or any language specific constructs. This article is not about that.</li>
+<li>It&rsquo;s not important what is under the hood of reaching remote service and how our client returns us value or error. We just don&rsquo;t care. Here we look at what happens next when we already know
+the result of execution and try to provide api for it.</li>
+</ul>
+
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+    </ul>
+<nav class="paginav">
+  <a class="next" href="http://localhost:1313/posts/cxx-error-handling-gpt/">
+    <span class="title">Next »</span>
+    <br>
+    <span></span>
+  </a>
+</nav>
+
+
+<ul class="share-buttons">
+    <li>
+        <a target="_blank" rel="noopener noreferrer" aria-label="share Thoughts on error handling on x"
+            href="https://x.com/intent/tweet/?text=Thoughts%20on%20error%20handling&amp;url=http%3a%2f%2flocalhost%3a1313%2fposts%2fcxx-error-handling%2f&amp;hashtags=">
+            <svg version="1.1" viewBox="0 0 512 512" xml:space="preserve" height="30px" width="30px" fill="currentColor">
+                <path
+                    d="M512 62.554 L 512 449.446 C 512 483.97 483.97 512 449.446 512 L 62.554 512 C 28.03 512 0 483.97 0 449.446 L 0 62.554 C 0 28.03 28.029 0 62.554 0 L 449.446 0 C 483.971 0 512 28.03 512 62.554 Z M 269.951 190.75 L 182.567 75.216 L 56 75.216 L 207.216 272.95 L 63.9 436.783 L 125.266 436.783 L 235.9 310.383 L 332.567 436.783 L 456 436.783 L 298.367 228.367 L 432.367 75.216 L 371.033 75.216 Z M 127.633 110 L 164.101 110 L 383.481 400.065 L 349.5 400.065 Z" />
+            </svg>
+        </a>
+    </li>
+    <li>
+        <a target="_blank" rel="noopener noreferrer" aria-label="share Thoughts on error handling on linkedin"
+            href="https://www.linkedin.com/shareArticle?mini=true&amp;url=http%3a%2f%2flocalhost%3a1313%2fposts%2fcxx-error-handling%2f&amp;title=Thoughts%20on%20error%20handling&amp;summary=Thoughts%20on%20error%20handling&amp;source=http%3a%2f%2flocalhost%3a1313%2fposts%2fcxx-error-handling%2f">
+            <svg version="1.1" viewBox="0 0 512 512" xml:space="preserve" height="30px" width="30px" fill="currentColor">
+                <path
+                    d="M449.446,0c34.525,0 62.554,28.03 62.554,62.554l0,386.892c0,34.524 -28.03,62.554 -62.554,62.554l-386.892,0c-34.524,0 -62.554,-28.03 -62.554,-62.554l0,-386.892c0,-34.524 28.029,-62.554 62.554,-62.554l386.892,0Zm-288.985,423.278l0,-225.717l-75.04,0l0,225.717l75.04,0Zm270.539,0l0,-129.439c0,-69.333 -37.018,-101.586 -86.381,-101.586c-39.804,0 -57.634,21.891 -67.617,37.266l0,-31.958l-75.021,0c0.995,21.181 0,225.717 0,225.717l75.02,0l0,-126.056c0,-6.748 0.486,-13.492 2.474,-18.315c5.414,-13.475 17.767,-27.434 38.494,-27.434c27.135,0 38.007,20.707 38.007,51.037l0,120.768l75.024,0Zm-307.552,-334.556c-25.674,0 -42.448,16.879 -42.448,39.002c0,21.658 16.264,39.002 41.455,39.002l0.484,0c26.165,0 42.452,-17.344 42.452,-39.002c-0.485,-22.092 -16.241,-38.954 -41.943,-39.002Z" />
+            </svg>
+        </a>
+    </li>
+    <li>
+        <a target="_blank" rel="noopener noreferrer" aria-label="share Thoughts on error handling on reddit"
+            href="https://reddit.com/submit?url=http%3a%2f%2flocalhost%3a1313%2fposts%2fcxx-error-handling%2f&title=Thoughts%20on%20error%20handling">
+            <svg version="1.1" viewBox="0 0 512 512" xml:space="preserve" height="30px" width="30px" fill="currentColor">
+                <path
+                    d="M449.446,0c34.525,0 62.554,28.03 62.554,62.554l0,386.892c0,34.524 -28.03,62.554 -62.554,62.554l-386.892,0c-34.524,0 -62.554,-28.03 -62.554,-62.554l0,-386.892c0,-34.524 28.029,-62.554 62.554,-62.554l386.892,0Zm-3.446,265.638c0,-22.964 -18.616,-41.58 -41.58,-41.58c-11.211,0 -21.361,4.457 -28.841,11.666c-28.424,-20.508 -67.586,-33.757 -111.204,-35.278l18.941,-89.121l61.884,13.157c0.756,15.734 13.642,28.29 29.56,28.29c16.407,0 29.706,-13.299 29.706,-29.701c0,-16.403 -13.299,-29.702 -29.706,-29.702c-11.666,0 -21.657,6.792 -26.515,16.578l-69.105,-14.69c-1.922,-0.418 -3.939,-0.042 -5.585,1.036c-1.658,1.073 -2.811,2.761 -3.224,4.686l-21.152,99.438c-44.258,1.228 -84.046,14.494 -112.837,35.232c-7.468,-7.164 -17.589,-11.591 -28.757,-11.591c-22.965,0 -41.585,18.616 -41.585,41.58c0,16.896 10.095,31.41 24.568,37.918c-0.639,4.135 -0.99,8.328 -0.99,12.576c0,63.977 74.469,115.836 166.33,115.836c91.861,0 166.334,-51.859 166.334,-115.836c0,-4.218 -0.347,-8.387 -0.977,-12.493c14.564,-6.47 24.735,-21.034 24.735,-38.001Zm-119.474,108.193c-20.27,20.241 -59.115,21.816 -70.534,21.816c-11.428,0 -50.277,-1.575 -70.522,-21.82c-3.007,-3.008 -3.007,-7.882 0,-10.889c3.003,-2.999 7.882,-3.003 10.885,0c12.777,12.781 40.11,17.317 59.637,17.317c19.522,0 46.86,-4.536 59.657,-17.321c3.016,-2.999 7.886,-2.995 10.885,0.008c3.008,3.011 3.003,7.882 -0.008,10.889Zm-5.23,-48.781c-16.373,0 -29.701,-13.324 -29.701,-29.698c0,-16.381 13.328,-29.714 29.701,-29.714c16.378,0 29.706,13.333 29.706,29.714c0,16.374 -13.328,29.698 -29.706,29.698Zm-160.386,-29.702c0,-16.381 13.328,-29.71 29.714,-29.71c16.369,0 29.689,13.329 29.689,29.71c0,16.373 -13.32,29.693 -29.689,29.693c-16.386,0 -29.714,-13.32 -29.714,-29.693Z" />
+            </svg>
+        </a>
+    </li>
+    <li>
+        <a target="_blank" rel="noopener noreferrer" aria-label="share Thoughts on error handling on facebook"
+            href="https://facebook.com/sharer/sharer.php?u=http%3a%2f%2flocalhost%3a1313%2fposts%2fcxx-error-handling%2f">
+            <svg version="1.1" viewBox="0 0 512 512" xml:space="preserve" height="30px" width="30px" fill="currentColor">
+                <path
+                    d="M449.446,0c34.525,0 62.554,28.03 62.554,62.554l0,386.892c0,34.524 -28.03,62.554 -62.554,62.554l-106.468,0l0,-192.915l66.6,0l12.672,-82.621l-79.272,0l0,-53.617c0,-22.603 11.073,-44.636 46.58,-44.636l36.042,0l0,-70.34c0,0 -32.71,-5.582 -63.982,-5.582c-65.288,0 -107.96,39.569 -107.96,111.204l0,62.971l-72.573,0l0,82.621l72.573,0l0,192.915l-191.104,0c-34.524,0 -62.554,-28.03 -62.554,-62.554l0,-386.892c0,-34.524 28.029,-62.554 62.554,-62.554l386.892,0Z" />
+            </svg>
+        </a>
+    </li>
+    <li>
+        <a target="_blank" rel="noopener noreferrer" aria-label="share Thoughts on error handling on whatsapp"
+            href="https://api.whatsapp.com/send?text=Thoughts%20on%20error%20handling%20-%20http%3a%2f%2flocalhost%3a1313%2fposts%2fcxx-error-handling%2f">
+            <svg version="1.1" viewBox="0 0 512 512" xml:space="preserve" height="30px" width="30px" fill="currentColor">
+                <path
+                    d="M449.446,0c34.525,0 62.554,28.03 62.554,62.554l0,386.892c0,34.524 -28.03,62.554 -62.554,62.554l-386.892,0c-34.524,0 -62.554,-28.03 -62.554,-62.554l0,-386.892c0,-34.524 28.029,-62.554 62.554,-62.554l386.892,0Zm-58.673,127.703c-33.842,-33.881 -78.847,-52.548 -126.798,-52.568c-98.799,0 -179.21,80.405 -179.249,179.234c-0.013,31.593 8.241,62.428 23.927,89.612l-25.429,92.884l95.021,-24.925c26.181,14.28 55.659,21.807 85.658,21.816l0.074,0c98.789,0 179.206,-80.413 179.247,-179.243c0.018,-47.895 -18.61,-92.93 -52.451,-126.81Zm-126.797,275.782l-0.06,0c-26.734,-0.01 -52.954,-7.193 -75.828,-20.767l-5.441,-3.229l-56.386,14.792l15.05,-54.977l-3.542,-5.637c-14.913,-23.72 -22.791,-51.136 -22.779,-79.287c0.033,-82.142 66.867,-148.971 149.046,-148.971c39.793,0.014 77.199,15.531 105.329,43.692c28.128,28.16 43.609,65.592 43.594,105.4c-0.034,82.149 -66.866,148.983 -148.983,148.984Zm81.721,-111.581c-4.479,-2.242 -26.499,-13.075 -30.604,-14.571c-4.105,-1.495 -7.091,-2.241 -10.077,2.241c-2.986,4.483 -11.569,14.572 -14.182,17.562c-2.612,2.988 -5.225,3.364 -9.703,1.12c-4.479,-2.241 -18.91,-6.97 -36.017,-22.23c-13.314,-11.876 -22.304,-26.542 -24.916,-31.026c-2.612,-4.484 -0.279,-6.908 1.963,-9.14c2.016,-2.007 4.48,-5.232 6.719,-7.847c2.24,-2.615 2.986,-4.484 4.479,-7.472c1.493,-2.99 0.747,-5.604 -0.374,-7.846c-1.119,-2.241 -10.077,-24.288 -13.809,-33.256c-3.635,-8.733 -7.327,-7.55 -10.077,-7.688c-2.609,-0.13 -5.598,-0.158 -8.583,-0.158c-2.986,0 -7.839,1.121 -11.944,5.604c-4.105,4.484 -15.675,15.32 -15.675,37.364c0,22.046 16.048,43.342 18.287,46.332c2.24,2.99 31.582,48.227 76.511,67.627c10.685,4.615 19.028,7.371 25.533,9.434c10.728,3.41 20.492,2.929 28.209,1.775c8.605,-1.285 26.499,-10.833 30.231,-21.295c3.732,-10.464 3.732,-19.431 2.612,-21.298c-1.119,-1.869 -4.105,-2.99 -8.583,-5.232Z" />
+            </svg>
+        </a>
+    </li>
+    <li>
+        <a target="_blank" rel="noopener noreferrer" aria-label="share Thoughts on error handling on telegram"
+            href="https://telegram.me/share/url?text=Thoughts%20on%20error%20handling&amp;url=http%3a%2f%2flocalhost%3a1313%2fposts%2fcxx-error-handling%2f">
+            <svg version="1.1" xml:space="preserve" viewBox="2 2 28 28" height="30px" width="30px" fill="currentColor">
+                <path
+                    d="M26.49,29.86H5.5a3.37,3.37,0,0,1-2.47-1,3.35,3.35,0,0,1-1-2.47V5.48A3.36,3.36,0,0,1,3,3,3.37,3.37,0,0,1,5.5,2h21A3.38,3.38,0,0,1,29,3a3.36,3.36,0,0,1,1,2.46V26.37a3.35,3.35,0,0,1-1,2.47A3.38,3.38,0,0,1,26.49,29.86Zm-5.38-6.71a.79.79,0,0,0,.85-.66L24.73,9.24a.55.55,0,0,0-.18-.46.62.62,0,0,0-.41-.17q-.08,0-16.53,6.11a.59.59,0,0,0-.41.59.57.57,0,0,0,.43.52l4,1.24,1.61,4.83a.62.62,0,0,0,.63.43.56.56,0,0,0,.4-.17L16.54,20l4.09,3A.9.9,0,0,0,21.11,23.15ZM13.8,20.71l-1.21-4q8.72-5.55,8.78-5.55c.15,0,.23,0,.23.16a.18.18,0,0,1,0,.06s-2.51,2.3-7.52,6.8Z" />
+            </svg>
+        </a>
+    </li>
+    <li>
+        <a target="_blank" rel="noopener noreferrer" aria-label="share Thoughts on error handling on ycombinator"
+            href="https://news.ycombinator.com/submitlink?t=Thoughts%20on%20error%20handling&u=http%3a%2f%2flocalhost%3a1313%2fposts%2fcxx-error-handling%2f">
+            <svg version="1.1" xml:space="preserve" width="30px" height="30px" viewBox="0 0 512 512" fill="currentColor"
+                xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape">
+                <path
+                    d="M449.446 0C483.971 0 512 28.03 512 62.554L512 449.446C512 483.97 483.97 512 449.446 512L62.554 512C28.03 512 0 483.97 0 449.446L0 62.554C0 28.03 28.029 0 62.554 0L449.446 0ZM183.8767 87.9921H121.8427L230.6673 292.4508V424.0079H281.3328V292.4508L390.1575 87.9921H328.1233L256 238.2489z" />
+            </svg>
+        </a>
+    </li>
+</ul>
+
+  </footer>
+</article>
+    </main>
+    
+<footer class="footer">
+        <span>© <a href="https://github.com/airmyxa">Vladislav Vlasov</a></span> · 
+
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu')
+    if (menu) {
+        menu.scrollLeft = localStorage.getItem("menu-scroll-position");
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        if (document.body.className.includes("dark")) {
+            document.body.classList.remove('dark');
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            document.body.classList.add('dark');
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+<script>
+    document.querySelectorAll('pre > code').forEach((codeblock) => {
+        const container = codeblock.parentNode.parentNode;
+
+        const copybutton = document.createElement('button');
+        copybutton.classList.add('copy-code');
+        copybutton.innerHTML = 'copy';
+
+        function copyingDone() {
+            copybutton.innerHTML = 'copied!';
+            setTimeout(() => {
+                copybutton.innerHTML = 'copy';
+            }, 2000);
+        }
+
+        copybutton.addEventListener('click', (cb) => {
+            if ('clipboard' in navigator) {
+                navigator.clipboard.writeText(codeblock.textContent);
+                copyingDone();
+                return;
+            }
+
+            const range = document.createRange();
+            range.selectNodeContents(codeblock);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            try {
+                document.execCommand('copy');
+                copyingDone();
+            } catch (e) { };
+            selection.removeRange(range);
+        });
+
+        if (container.classList.contains("highlight")) {
+            container.appendChild(copybutton);
+        } else if (container.parentNode.firstChild == container) {
+            
+        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+            
+            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+        } else {
+            
+            codeblock.parentNode.appendChild(copybutton);
+        }
+    });
+</script>
+</body>
+
+</html>
