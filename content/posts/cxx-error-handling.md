@@ -1,5 +1,5 @@
 ---
-date: '2024-12-15T11:03:02+04:00'
+date: '2025-01-15T11:03:02+04:00'
 title: 'Thoughts on error handling'
 ---
 
@@ -7,10 +7,9 @@ title: 'Thoughts on error handling'
 
 Have you ever properly thought about error handling in your code?
 We encounter errors all the time: when network errors occur, when processing user input, and generally whenever side effects are involved.
-So, what approaches to error handling are available? // TODO: don't like last sentense
 
 Some languages have their own idioms for error handling, like Go's `err != nil` or Rust's `Result` type. 
-But some provide an ability to do whatever rubbish you want. So here are some of my thoughts on handling errors when you have the freedom to choose your strategy.
+Others provide an ability to do whatever rubbish you want. So here are some of my thoughts on handling errors when you have the freedom to choose your strategy.
 
 For examples, I’ll use C++, as it supports all the error-handling approaches I’ll discuss here.
 Let’s consider a function Foo that accepts some data, communicates with a remote server, and returns a response to the caller. The code might look like this:
