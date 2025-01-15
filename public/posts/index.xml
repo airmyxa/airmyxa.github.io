@@ -7,35 +7,7 @@
     <generator>Hugo -- 0.139.2</generator>
     <language>en</language>
     <copyright>Vladislav Vlasov</copyright>
-    <lastBuildDate>Sun, 15 Dec 2024 11:03:02 +0400</lastBuildDate>
+    <lastBuildDate></lastBuildDate>
     <atom:link href="http://localhost:1313/posts/index.xml" rel="self" type="application/rss+xml" />
-    <item>
-      <title>Thoughts on error handling</title>
-      <link>http://localhost:1313/posts/cxx-error-handling/</link>
-      <pubDate>Sun, 15 Dec 2024 11:03:02 +0400</pubDate>
-      <guid>http://localhost:1313/posts/cxx-error-handling/</guid>
-      <description>&lt;p&gt;Have you ever thought properly about error handling in your code? We process errors all the time: when network errors occur, when we need to process userinput
-and generally speaking always when we have any side effects. So what approaches to error handling do we have?&lt;/p&gt;
-&lt;p&gt;Some languages have their own idioms of error handling like go with &lt;code&gt;err != nil&lt;/code&gt; or rust with &lt;code&gt;Result&lt;/code&gt; type.
-But some provide an ability to do whatever you want. So here are some of my thoughts on how to handle errors if you have choice of approach.&lt;/p&gt;</description>
-    </item>
-    <item>
-      <title></title>
-      <link>http://localhost:1313/posts/cxx-error-handling-gpt/</link>
-      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
-      <guid>http://localhost:1313/posts/cxx-error-handling-gpt/</guid>
-      <description>&lt;p&gt;Title: Thoughts on Error Handling&lt;/p&gt;
-&lt;p&gt;Date: 2024-12-15T11:03:02+04:00&lt;/p&gt;
-&lt;p&gt;Draft: true&lt;/p&gt;
-&lt;p&gt;Have you ever thought properly about error handling in your code? Some languages have their own idioms for error handling, like Go with err != nil or Rust with the Result type. But others offer the freedom to implement whatever you want. Here are some of my thoughts on how to handle errors when you have a choice of approach.&lt;/p&gt;
-&lt;p&gt;As a language for examples, I&amp;rsquo;ll use C++ because it allows the use of all error handling approaches I want to discuss here. As a task to illustrate the problem, consider a function Foo that accepts some data, communicates with a remote server over a network, and returns the data back to the calling side. The code might look something like this:&lt;/p&gt;</description>
-    </item>
-    <item>
-      <title></title>
-      <link>http://localhost:1313/posts/tmp/</link>
-      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
-      <guid>http://localhost:1313/posts/tmp/</guid>
-      <description></description>
-    </item>
   </channel>
 </rss>

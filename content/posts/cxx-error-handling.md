@@ -1,5 +1,6 @@
 ---
-date: '2025-01-15T11:03:02+04:00'
+date: '2025-01-15T9:03:02+04:00'
+draft: false
 title: 'Thoughts on error handling'
 ---
 

@@ -7,7 +7,18 @@
     <generator>Hugo -- 0.139.2</generator>
     <language>en</language>
     <copyright>Vladislav Vlasov</copyright>
-    <lastBuildDate>Mon, 01 Jan 0001 00:00:00 +0000</lastBuildDate>
+    <lastBuildDate>Wed, 15 Jan 2025 09:03:02 +0400</lastBuildDate>
     <atom:link href="http://localhost:1313/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Thoughts on error handling</title>
+      <link>http://localhost:1313/posts/cxx-error-handling/</link>
+      <pubDate>Wed, 15 Jan 2025 09:03:02 +0400</pubDate>
+      <guid>http://localhost:1313/posts/cxx-error-handling/</guid>
+      <description>&lt;hr&gt;
+&lt;p&gt;Have you ever properly thought about error handling in your code?
+We encounter errors all the time: when network errors occur, when processing user input, and generally whenever side effects are involved.&lt;/p&gt;
+&lt;p&gt;Some languages have their own idioms for error handling, like Go&amp;rsquo;s &lt;code&gt;err != nil&lt;/code&gt; or Rust&amp;rsquo;s &lt;code&gt;Result&lt;/code&gt; type.
+Others provide an ability to do whatever rubbish you want. So here are some of my thoughts on handling errors when you have the freedom to choose your strategy.&lt;/p&gt;</description>
+    </item>
   </channel>
 </rss>
