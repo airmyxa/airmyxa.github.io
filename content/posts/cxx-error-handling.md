@@ -1,6 +1,5 @@
 ---
 date: '2024-12-15T11:03:02+04:00'
-draft: true
 title: 'Thoughts on error handling'
 ---
 
@@ -335,6 +334,8 @@ void Foo(D dependencies, R request, std::function<void(OkResponse)> on_success, 
 You think this is not really used much and you don't care? Hah! I worked with code base where this was a guidelined way to process errors!
 What a great time it was writing 9 level recursive closures in C++...
 
+---
+
 ### What to choose?
 
 There is no correct or incorrect answer here. But I'll try to give some points on what I think:
@@ -344,6 +345,8 @@ There is no correct or incorrect answer here. But I'll try to give some points o
 * Don't handle error twice.
 * Use what is already used in your project - it's simple and most likely correct answer. Changing error handling approach can lead to many error handling approaches at once,
 and it would be much worse.
+
+---
 
 ## Remarks about the code
 

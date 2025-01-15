@@ -200,12 +200,6 @@ But some provide an ability to do whatever rubbish you want. So here are some of
     <div class="breadcrumbs"><a href="http://localhost:1313/">Home</a>&nbsp;»&nbsp;<a href="http://localhost:1313/posts/">Posts</a></div>
     <h1 class="post-title entry-hint-parent">
       Thoughts on error handling
-      <span class="entry-hint" title="Draft">
-        <svg xmlns="http://www.w3.org/2000/svg" height="35" viewBox="0 -960 960 960" fill="currentColor">
-          <path
-            d="M160-410v-60h300v60H160Zm0-165v-60h470v60H160Zm0-165v-60h470v60H160Zm360 580v-123l221-220q9-9 20-13t22-4q12 0 23 4.5t20 13.5l37 37q9 9 13 20t4 22q0 11-4.5 22.5T862.09-380L643-160H520Zm300-263-37-37 37 37ZM580-220h38l121-122-18-19-19-18-122 121v38Zm141-141-19-18 37 37-18-19Z" />
-        </svg>
-      </span>
     </h1>
     <div class="post-meta"><span title='2024-12-15 11:03:02 +0400 +04'>December 15, 2024</span>&nbsp;·&nbsp;10 min&nbsp;·&nbsp;Vladislav Vlasov&nbsp;|&nbsp;<a href="https://github.com/adityatelange/hugo-PaperMod/tree/exampleSite/content/posts/cxx-error-handling.md" rel="noopener noreferrer" target="_blank">Suggest Changes</a>
 
@@ -491,6 +485,7 @@ while writing this article so I don&rsquo;t care.</p>
 </span></span><span class="line"><span class="cl"><span class="p">}</span>
 </span></span></code></pre></div><p>You think this is not really used much and you don&rsquo;t care? Hah! I worked with code base where this was a guidelined way to process errors!
 What a great time it was writing 9 level recursive closures in C++&hellip;</p>
+<hr>
 <h3 id="what-to-choose">What to choose?<a hidden class="anchor" aria-hidden="true" href="#what-to-choose">#</a></h3>
 <p>There is no correct or incorrect answer here. But I&rsquo;ll try to give some points on what I think:</p>
 <ul>
@@ -500,6 +495,7 @@ What a great time it was writing 9 level recursive closures in C++&hellip;</p>
 <li>Use what is already used in your project - it&rsquo;s simple and most likely correct answer. Changing error handling approach can lead to many error handling approaches at once,
 and it would be much worse.</li>
 </ul>
+<hr>
 <h2 id="remarks-about-the-code">Remarks about the code<a hidden class="anchor" aria-hidden="true" href="#remarks-about-the-code">#</a></h2>
 <ul>
 <li>I didn&rsquo;t try to write correct or good enough for production code. You cannot find r/l/g/x-value C++ references or any language specific constructs. This article is not about that.</li>
