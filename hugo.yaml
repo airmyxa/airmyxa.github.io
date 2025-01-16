@@ -94,11 +94,17 @@ params:
       title: Github
       url: "https://github.com/airmyxa"
     - name: X
-      title: Share PaperMod on X/Twitter
+      title: Twitter
       url: "https://x.com/axymria"
+    - name: linkedin
+      title: LinkedIn
+      url: https://www.linkedin.com/in/airmyxa
+    - name: buymeacoffee
+      title: buymeacoffee
+      url: https://buymeacoffee.com/axymria
 
   editPost:
-    URL: "https://github.com/adityatelange/hugo-PaperMod/tree/exampleSite/content"
+    URL: "https://github.com/airmyxa/airmyxa.github.io/tree/main/content"
     Text: "Suggest Changes" # edit text
     appendFilePath: true # to append file path to Edit link
 
