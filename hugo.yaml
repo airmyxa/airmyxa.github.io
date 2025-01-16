@@ -1,4 +1,4 @@
-baseURL: https://airmyxa.github.io/
+baseURL: https://blog.axymria.com/
 languageCode: en-us
 title: axymria - sigsegv development
 theme: ["PaperMod"]
@@ -38,10 +38,10 @@ languages:
           url: archives
           weight: 5
         - name: Search
-          url: search/
+          url: search
           weight: 10
         - name: Tags
-          url: tags/
+          url: tags
           weight: 10
 
 outputs:
