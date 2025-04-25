@@ -4,11 +4,25 @@
     <title>axymria - sigsegv development</title>
     <link>http://localhost:1313/</link>
     <description>Recent content on axymria - sigsegv development</description>
-    <generator>Hugo -- 0.139.2</generator>
+    <generator>Hugo -- 0.145.0</generator>
     <language>en</language>
     <copyright>Vladislav Vlasov</copyright>
-    <lastBuildDate>Wed, 15 Jan 2025 09:03:02 +0400</lastBuildDate>
+    <lastBuildDate>Tue, 11 Mar 2025 09:03:02 +0400</lastBuildDate>
     <atom:link href="http://localhost:1313/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Void Linux after MacOS</title>
+      <link>http://localhost:1313/posts/linux-after-macos/</link>
+      <pubDate>Tue, 11 Mar 2025 09:03:02 +0400</pubDate>
+      <guid>http://localhost:1313/posts/linux-after-macos/</guid>
+      <description>&lt;hr&gt;
+&lt;p&gt;I have had some experience using different linux distributions during my life. First I installed linux when I started studing
+applied mathematics at University. I used it almost for every usual task as my main desktop system. I programmed, watched youtube
+and did all kind of staff using it. Since then I&amp;rsquo;ve had some experience using different distros.
+I used Ubuntu a lot, Archlinux, Manjaro and some others.&lt;/p&gt;
+&lt;p&gt;After uni when I started working on my first full time job I was offered to choose what laptop I want. There were linux or MacOS
+variants on offer. I didn&amp;rsquo;t believe that I could choose macbook because for me it was more like something for reach people and I wasn&amp;rsquo;t
+one of them. With thrill I checked macbook in forms. Since then I used macbook as my primarily laptop and I pretty get used to it.&lt;/p&gt;</description>
+    </item>
     <item>
       <title>Thoughts on error handling</title>
       <link>http://localhost:1313/posts/cxx-error-handling/</link>
