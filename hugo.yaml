@@ -34,6 +34,9 @@ languages:
       series: series
     menu:
       main:
+        - name: About
+          url: about
+          weight: 1
         - name: Archive
           url: archives
           weight: 5
@@ -173,5 +176,5 @@ markup:
 services:
   instagram:
     disableInlineCSS: true
-  twitter:
+  x:
     disableInlineCSS: true

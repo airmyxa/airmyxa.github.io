@@ -4,8 +4,8 @@
     <title>Posts on axymria - sigsegv development</title>
     <link>http://localhost:1313/posts/</link>
     <description>Recent content in Posts on axymria - sigsegv development</description>
-    <generator>Hugo -- 0.139.2</generator>
-    <language>en</language>
+    <generator>Hugo -- 0.160.1</generator>
+    <language>en-us</language>
     <copyright>Vladislav Vlasov</copyright>
     <lastBuildDate>Wed, 15 Jan 2025 09:03:02 +0400</lastBuildDate>
     <atom:link href="http://localhost:1313/posts/index.xml" rel="self" type="application/rss+xml" />
