@@ -7,8 +7,39 @@
     <generator>Hugo -- 0.160.1</generator>
     <language>en-us</language>
     <copyright>Vladislav Vlasov</copyright>
-    <lastBuildDate>Wed, 15 Jan 2025 09:03:02 +0400</lastBuildDate>
+    <lastBuildDate>Mon, 13 Apr 2026 00:00:00 +0000</lastBuildDate>
     <atom:link href="http://localhost:1313/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>About Me</title>
+      <link>http://localhost:1313/about/</link>
+      <pubDate>Mon, 13 Apr 2026 00:00:00 +0000</pubDate>
+      <guid>http://localhost:1313/about/</guid>
+      <description>&lt;h1 id=&#34;vladislav-vlasov&#34;&gt;Vladislav Vlasov&lt;/h1&gt;
+&lt;p&gt;Yerevan, AM | +37491553297 | &lt;a href=&#34;mailto:axymria@gmail.com&#34;&gt;axymria@gmail.com&lt;/a&gt; | &lt;a href=&#34;https://linkedin.com/in/airmyxa&#34;&gt;LinkedIn&lt;/a&gt; | &lt;a href=&#34;https://github.com/airmyxa&#34;&gt;GitHub&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;📄 &lt;strong&gt;&lt;a href=&#34;http://localhost:1313/Vladislav_Vlasov_Resume.pdf&#34;&gt;Download PDF Version&lt;/a&gt;&lt;/strong&gt;&lt;/p&gt;
+&lt;hr&gt;
+&lt;h2 id=&#34;-experience&#34;&gt;💼 Experience&lt;/h2&gt;
+&lt;h3 id=&#34;yandex-eats&#34;&gt;&lt;strong&gt;Yandex Eats&lt;/strong&gt;&lt;/h3&gt;
+&lt;p&gt;&lt;strong&gt;Senior Software Engineer&lt;/strong&gt;&lt;br&gt;
+&lt;em&gt;Aug 2025 – Present&lt;/em&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Transitioned back to an Individual Contributor role to focus on platform development.&lt;/li&gt;
+&lt;li&gt;Built a new backend for timer-based discounts to meet high-load requirements.&lt;/li&gt;
+&lt;li&gt;Automated regular calls to restaurants, validated the efficiency.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;strong&gt;Engineering Team Lead&lt;/strong&gt;&lt;br&gt;
+&lt;em&gt;Sep 2024 – Aug 2025&lt;/em&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Led a cross-functional team of 10 (backend, Android, iOS, web, QA) and partnered with Product. Achieved 8 / 10 average team satisfaction score (internal team survey Q1-Q3 2025).&lt;/li&gt;
+&lt;li&gt;Ensured 100% SLA for 6 months for backend microservices and frontend zero-bug policy.&lt;/li&gt;
+&lt;li&gt;Delivered high-demand features (courier tips, charity widget, new tariffs UI) within strict deadlines, significantly raised product metrics (order cost, upsell screen conversion).&lt;/li&gt;
+&lt;li&gt;Reviewed 46 PRs in 90 days, helped with and approved 10+ complex technical solutions developed by different teams in 6 months.&lt;/li&gt;
+&lt;li&gt;Stabilized technical platform in team&amp;rsquo;s domain: stopped uncontrolled DB growth in microservice (from 45Gb/mo to 0), cut disk usage 70% (420Gb to 120Gb).&lt;/li&gt;
+&lt;li&gt;Grew talent: promoted 4 engineers across levels; mentored one backend engineer to tech lead; hired and onboarded a web trainee to mid-level.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;strong&gt;Software Engineer&lt;/strong&gt;&lt;br&gt;
+&lt;em&gt;Sep 2021 – Sep 2024&lt;/em&gt;&lt;/p&gt;</description>
+    </item>
     <item>
       <title>Thoughts on error handling</title>
       <link>http://localhost:1313/posts/cxx-error-handling/</link>
